@@ -3,53 +3,85 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Riconoscimento Animali IA</title>
     <style>
         body {
-            text-align: center;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
         }
         h1 {
             margin-top: 20px;
+            padding: 0 10px;
         }
         #start-button {
             padding: 20px 40px;
             font-size: 24px;
-            margin: 20px;
+            margin: 20px auto;
             cursor: pointer;
         }
-        #webcam-container {
-            margin: auto;
-            width: 800px;
-            height: 800px;
-        }
-        #label-container {
+        #main-container {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #webcam-and-labels {
+            display: flex;
+            flex-direction: row;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 30px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        #webcam-container {
+            flex: 0 0 auto;
+            width: 800px;
+            max-width: 90vw;
+            height: auto;
+        }
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        #label-container {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: flex-start;
+            margin-left: 20px;
+            padding-top: 20px;
+            width: 200px;
         }
         .label-block {
-            width: 45%;
-            margin: 10px;
+            margin-bottom: 15px;
+            width: 100%;
             text-align: left;
             font-size: 20px;
             font-weight: bold;
-            position: relative;
         }
         .bar {
-            height: 10px;
+            height: 12px;
             margin-top: 5px;
-            border-radius: 5px;
+            border-radius: 6px;
+            background-color: #ccc;
+            transition: width 0.3s ease;
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <h1>Riconosci gli animali con la nostra intelligenza artificiale</h1>
     <button id="start-button" onclick="init()">Iniziamo</button>
-    <div id="webcam-container"></div>
-    <div id="label-container"></div>
+    <div id="main-container">
+        <div id="webcam-and-labels">
+            <div id="webcam-container"></div>
+            <div id="label-container"></div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
@@ -85,7 +117,14 @@
 
             const flip = true;
             webcam = new tmImage.Webcam(800, 800, flip, true);
-            await webcam.setup({ facingMode: "environment" });
+
+            // Safari compatibility: try "environment", fallback if not supported
+            try {
+                await webcam.setup({ facingMode: { ideal: "environment" } });
+            } catch (error) {
+                await webcam.setup(); // fallback without facingMode
+            }
+
             await webcam.play();
             window.requestAnimationFrame(loop);
 
