@@ -17,7 +17,7 @@
             margin-top: 20px;
             padding: 0 10px;
         }
-        #start-button {
+        #start-button, #snapshot-button {
             padding: 20px 40px;
             font-size: 24px;
             margin: 20px auto;
@@ -76,11 +76,12 @@
 <body>
     <h1>Riconosci gli animali con la nostra intelligenza artificiale</h1>
     <button id="start-button" onclick="init()">Iniziamo</button>
-    <div id="main-container">
+    <div id="main-container" style="display:none;">
         <div id="webcam-and-labels">
             <div id="webcam-container"></div>
             <div id="label-container"></div>
         </div>
+        <button id="snapshot-button" onclick="toggleSnapshot()">Scatta</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -105,9 +106,11 @@
         };
 
         let model, webcam, labelContainer, maxPredictions;
+        let running = true;
 
         async function init() {
             document.getElementById("start-button").style.display = "none";
+            document.getElementById("main-container").style.display = "flex";
 
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
@@ -117,14 +120,11 @@
 
             const flip = true;
             webcam = new tmImage.Webcam(800, 800, flip, true);
-
-            // Safari compatibility: try "environment", fallback if not supported
             try {
                 await webcam.setup({ facingMode: { ideal: "environment" } });
-            } catch (error) {
-                await webcam.setup(); // fallback without facingMode
+            } catch {
+                await webcam.setup();
             }
-
             await webcam.play();
             window.requestAnimationFrame(loop);
 
@@ -142,9 +142,11 @@
         }
 
         async function loop() {
-            webcam.update();
-            await predict();
-            window.requestAnimationFrame(loop);
+            if (running) {
+                webcam.update();
+                await predict();
+                window.requestAnimationFrame(loop);
+            }
         }
 
         async function predict() {
@@ -161,6 +163,17 @@
                 const bar = labelContainer.childNodes[i].querySelector(".bar");
                 bar.style.width = percent + "%";
                 bar.style.backgroundColor = color;
+            }
+        }
+
+        function toggleSnapshot() {
+            running = !running;
+            const btn = document.getElementById("snapshot-button");
+            if (running) {
+                window.requestAnimationFrame(loop);
+                btn.innerText = "Scatta";
+            } else {
+                btn.innerText = "Riprendi";
             }
         }
     </script>
