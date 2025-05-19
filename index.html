@@ -7,30 +7,36 @@
     <title>Riconoscimento Animali IA</title>
     <style>
         body {
+            margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
             text-align: center;
         }
         h1 {
             margin: 10px;
             font-size: 18px;
         }
-        #start-button, #snapshot-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px auto;
+        button {
+            font-size: 18px;
+            padding: 15px 30px;
+            margin: 10px;
             cursor: pointer;
         }
+        #start-button {
+            display: inline-block;
+        }
+        #snapshot-button {
+            display: none;
+        }
         #main-container {
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
         #webcam-container {
-            width: 100%;
-            max-width: 90vw;
+            width: 90vw;
+            max-width: 700px;
         }
         canvas {
             width: 100% !important;
@@ -38,23 +44,23 @@
         }
         #label-container {
             width: 90vw;
+            max-width: 700px;
+            margin-top: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            margin-top: 10px;
+            align-items: flex-start;
         }
         .label-block {
             width: 100%;
-            max-width: 300px;
             text-align: left;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin: 8px 0;
         }
         .bar {
-            height: 10px;
-            margin-top: 5px;
-            border-radius: 5px;
+            height: 12px;
+            margin-top: 4px;
+            border-radius: 6px;
             background-color: #ccc;
             transition: width 0.3s ease;
             width: 100%;
@@ -66,7 +72,7 @@
     <button id="start-button" onclick="init()">Iniziamo</button>
     <div id="main-container">
         <div id="webcam-container"></div>
-        <button id="snapshot-button" onclick="togglePause()" style="display:none;">Scatta</button>
+        <button id="snapshot-button" onclick="togglePause()">Scatta</button>
         <div id="label-container"></div>
     </div>
 
@@ -74,21 +80,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script type="text/javascript">
         const URL = "./";
+
         const emoji = {
+            "Leone": "🦁",
+            "Zebra": "🦓",
+            "Ornitorinco": "🦫",
             "Tartaruga": "🐢",
             "Farfalla": "🦋",
             "Medusa": "🌊",
-            "Leone": "🦁",
-            "Zebra": "🦓",
-            "Ornitorinco": "🦫"
+            "Essere umano": "🧍"
         };
+
         const colors = {
             "Leone": "orange",
             "Zebra": "gray",
             "Ornitorinco": "purple",
             "Tartaruga": "green",
             "Farfalla": "red",
-            "Medusa": "blue"
+            "Medusa": "blue",
+            "Essere umano": "gold"
         };
 
         let model, webcam, labelContainer, maxPredictions;
@@ -97,6 +107,7 @@
 
         async function init() {
             document.getElementById("start-button").style.display = "none";
+            document.getElementById("main-container").style.display = "flex";
             document.getElementById("snapshot-button").style.display = "inline-block";
 
             const modelURL = URL + "model.json";
@@ -105,8 +116,8 @@
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
 
-            const flip = false; // non specchiato
-            webcam = new tmImage.Webcam(800, 800, flip, true);
+            const flip = false;
+            webcam = new tmImage.Webcam(700, 700, flip, true);
             try {
                 await webcam.setup({ facingMode: { ideal: "environment" } });
             } catch {
@@ -144,7 +155,7 @@
                 const prob = prediction[i].probability;
                 const percent = Math.round(prob * 100);
                 const color = colors[name];
-                const emojiChar = emoji[name];
+                const emojiChar = emoji[name] || "";
 
                 const labelText = `${emojiChar} ${name}: ${percent}%`;
                 labelContainer.childNodes[i].querySelector(".label-text").innerText = labelText;
